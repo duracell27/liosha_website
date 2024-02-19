@@ -1,24 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import { createContext, useState } from "react";
+import Header from "./components/Header";
+import Loading from "./components/Loading";
+import Landing from "./components/Landing";
+import Error from "./components/Error";
+import MainInfo from "./components/MainInfo";
+import { Toaster } from "react-hot-toast";
 
+export const CarModel = createContext();
 function App() {
+  const [manufacturer, setManufacturer] = useState("mercedes");
+  const [input, setInput] = useState("");
+  const [pageStatus, setPageStatus] = useState("landing");
+  const [data, setData] = useState("");
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <CarModel.Provider
+      value={{ manufacturer, setManufacturer, input, setInput,pageStatus, setPageStatus,data, setData}}
+    >
+      <div className="">
+        <Toaster/>
+        <Header />
+        {pageStatus === "landing" ? (<Landing/>):''}
+        {pageStatus === "loading" ? (<Loading/>):''}
+        {pageStatus === "error" ? (<Error/>):''}
+        {pageStatus === "mainInfo" ? (<MainInfo/>):''}
+        {/* <Loading />  */}
+        {/* <Landing /> */}
+        {/* <Error /> */}
+
+      </div>
+    </CarModel.Provider>
   );
 }
 
