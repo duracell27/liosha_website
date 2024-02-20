@@ -9,6 +9,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+* {
+  scroll-behavior: smooth;
+}
 
 .header-bg{
   background-image: url('./img/header_image.png');

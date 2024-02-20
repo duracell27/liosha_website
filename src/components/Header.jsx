@@ -14,6 +14,16 @@ const Header = () => {
 
 
   const handleGetInfo = () => {
+
+    if (manufacturer==='bmw' && input.includes("mercedes")) {
+      toast.error("можливо ви ввели ссилку від мерседес");
+      return;
+    }
+
+    if (manufacturer==='mercedes' && input.includes("bmw")) {
+      toast.error("можливо ви ввели ссилку від bmw");
+      return;
+    }
     
     setPageStatus('loading');
     axios
@@ -34,12 +44,16 @@ const Header = () => {
   const handleSelect = () => {
     if (manufacturer == "bmw") {
       setManufacturer("mercedes");
+      setInput('');
+      setPageStatus('landing')
     } else if (manufacturer == "mercedes") {
       setManufacturer("bmw");
+      setInput('');
+      setPageStatus('landing')
     }
   };
   return (
-    <nav className="header-bg py-[50px]">
+    <nav className="header-bg py-[50px]" id='top'>
       <div className="max-w-[1200px] px-6 mx-auto">
         <h1 className="text-white text-[51px] mb-4">Get car part info</h1>
         <div className="mb-3">
