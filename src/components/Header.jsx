@@ -24,6 +24,11 @@ const Header = () => {
       toast.error("можливо ви ввели ссилку від bmw");
       return;
     }
+
+    if(!input.length){
+      toast.error("Поле посилання не може бути пустим");
+      return;
+    }
     
     setPageStatus('loading');
     axios
@@ -31,8 +36,10 @@ const Header = () => {
       .then((res) => {
         if (res.status === 200) {
           setData(res.data);
+          setPageStatus('mainInfo');
+        }else{
+          setPageStatus('error');
         }
-        setPageStatus('mainInfo');
       })
       .catch((err) => {
         console.log(err);

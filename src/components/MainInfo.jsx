@@ -197,8 +197,8 @@ const MainInfo = () => {
 
   return (
     <div className="py-[50px] px-6">
-      <div className="max-w-[1152px] mx-auto flex gap-7">
-        <div className="w-[25%]">
+      <div className="max-w-[1152px] mx-auto flex gap-7 flex-wrap-reverse sm:flex-nowrap">
+        <div className="w-full sm:w-[25%]">
           {images?.map((image, index) => (
             <div key={index} className=" my-3 ">
               <img
@@ -209,7 +209,7 @@ const MainInfo = () => {
             </div>
           ))}
         </div>
-        <div className="w-[75%]">
+        <div className=" w-full sm:w-[75%]">
           <div className="section">
             <h3 className="text-[36px]">{title}</h3>
             <p>
@@ -300,7 +300,7 @@ const MainInfo = () => {
               </button>
             </div>
             <a
-              className="flex justify-center items-center absolute right-[-100px] top-[115px] w-[48px] h-[48px] bg-black rounded-full"
+              className="hidden sm:flex justify-center items-center absolute sm:left-[-80px] sm:top-[115px] xl:left-[unset] xl:right-[-80px] xl:top-[115px] w-[48px] h-[48px] bg-black rounded-full"
               href={"/#top"}
             >
               <img src={chevron} />
