@@ -68,7 +68,7 @@ const Header = () => {
       // .get(`https://www.mboemparts.com/search?search_str=${input}`)
       .get(`${activeSite}${input}`)
       .then((res) => {
-        console.log(res.data);
+        
         if (res.status === 200) {
           setData(res.data);
           setPageStatus("mainInfo");
@@ -77,14 +77,14 @@ const Header = () => {
         }
       })
       .catch((err) => {
-        console.log(err);
+        
         setPageStatus("error");
         toast.error("Помилка отримання даних, або cors виключений");
       });
   };
 
   const handleSelect = (e) => {
-    console.log(e.target.value);
+    
 
     setManufacturer(e.target.value);
     setActiveSite(() => {
@@ -187,8 +187,6 @@ const Header = () => {
                     </option>
                   ))}
                   
-                  {/* <option value="site1">siteone</option>
-                <option value="site2">sitetwo</option> */}
                 </select>
               </div>
             </div>
