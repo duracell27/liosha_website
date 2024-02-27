@@ -208,8 +208,8 @@ const Header = () => {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={
                     manufacturer == "bmw"
-                      ? "Enter BMW part link"
-                      : "Enter Mercedes part link"
+                      ? "Enter BMW part number"
+                      : "Enter Mercedes part number"
                   }
                 />
                 <img
