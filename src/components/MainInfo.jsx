@@ -306,6 +306,11 @@ const MainInfo = () => {
               <img src={chevron} />
             </a>
           </div>
+          <div className="section mt-12" >
+            <div className="flex justify-end">
+              <button className="bg-black py-3 px-10 rounded-lg text-white font-bold uppercase">save</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
