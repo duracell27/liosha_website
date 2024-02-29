@@ -1,10 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { CarModel } from "../App";
 import bmw from "../img/bmw.svg";
 import mercedes from "../img/mercedes.svg";
 import cross from "../img/cross.svg";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { logoutUser, storeInSession } from "../utils/session";
 
 const Header = () => {
   let {
@@ -16,6 +17,8 @@ const Header = () => {
     setPageStatus,
     data,
     setData,
+    user,
+    setUser,
   } = useContext(CarModel);
 
   const mercedesSites = [
@@ -26,9 +29,8 @@ const Header = () => {
     "mercedesbenzpartsstore.com",
     "mbparts.mbusa.com",
     "mbonlineparts.com",
-
   ];
-  const bmwSites =["bmwpartsnow.com"]
+  const bmwSites = ["bmwpartsnow.com"];
 
   const mercedesSitesLinks = [
     "https://www.mboemparts.com/search?search_str=",
@@ -37,14 +39,41 @@ const Header = () => {
     "https://www.mbdirectparts.com/search?search_str=",
     "https://www.mercedesbenzpartsstore.com/search?search_str=",
     "https://mbparts.mbusa.com/search?search_str=",
-    "https://www.mbonlineparts.com/search?search_str="
+    "https://www.mbonlineparts.com/search?search_str=",
   ];
-  const bmwSitesLinks = ["https://www.bmwpartsnow.com/search?search_str="]
+  const bmwSitesLinks = ["https://www.bmwpartsnow.com/search?search_str="];
 
   const [activeSite, setActiveSite] = useState(mercedesSitesLinks[0]);
+  const [showLoginFields, setShowLoginFields] = useState(false);
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [storages, setStorages] = useState(null);
+  const [activeStorage, setActiveStorage] = useState(null);
 
   const handleSelectSite = (e) => {
     setActiveSite(e.target.value);
+  };
+
+  const handleLogin = () => {
+    setShowLoginFields(!showLoginFields);
+    if (name.length > 0 || password.length > 0) {
+      axios
+        .post(process.env.REACT_APP_BASE_URL + "/login", { name, password })
+        .then((response) => {
+          if (response.status === 200) {
+            storeInSession("user", JSON.stringify(response.data.user));
+            setUser(response.data.user);
+            setShowLoginFields(false);
+            setName("");
+            setPassword("");
+          }
+        });
+    }
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setUser(null);
   };
 
   const handleGetInfo = () => {
@@ -68,7 +97,6 @@ const Header = () => {
       // .get(`https://www.mboemparts.com/search?search_str=${input}`)
       .get(`${activeSite}${input}`)
       .then((res) => {
-        
         if (res.status === 200) {
           setData(res.data);
           setPageStatus("mainInfo");
@@ -77,30 +105,91 @@ const Header = () => {
         }
       })
       .catch((err) => {
-        
         setPageStatus("error");
         toast.error("Помилка отримання даних, або cors виключений");
       });
   };
 
   const handleSelect = (e) => {
-    
-
     setManufacturer(e.target.value);
     setActiveSite(() => {
-      if (e.target.value==='bmw'){
-        return bmwSitesLinks[0]
-      }else if (e.target.value==='mercedes'){
-        return mercedesSitesLinks[0]
+      if (e.target.value === "bmw") {
+        return bmwSitesLinks[0];
+      } else if (e.target.value === "mercedes") {
+        return mercedesSitesLinks[0];
       }
-    })
+    });
     setInput("");
     setPageStatus("landing");
   };
+
+  const getAvailableStorages = () => {
+    axios
+      .post(process.env.REACT_APP_BASE_URL + "/getAvaliableStorages", { id: user.id })
+      .then((response) => {
+        if (response.status === 200) {
+          setStorages(response.data);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  console.log(storages);
+
+  useEffect(() => {
+    if (user) {
+      getAvailableStorages();
+    }
+  }, [user]);
+
   return (
     <nav className="header-bg py-[50px]" id="top">
       <div className="max-w-[1200px] px-6 mx-auto">
-        <h1 className="text-white text-[51px] mb-4">Get car part info</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-white text-[51px] mb-4">Get car part info</h1>
+          <div className="">
+            {showLoginFields ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <input
+                  type="password"
+                  placeholder="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </>
+            ) : (
+              ""
+            )}
+            {user ? (
+              <div>
+                <img src={user.img} className="w-4 h-4" alt="usericon" />
+                <p>{user.name}</p>
+              </div>
+            ) : (
+              ""
+            )}
+            {user ? (
+              <button
+                className="p-2 bg-black text-white"
+                onClick={handleLogout}
+              >
+                logout
+              </button>
+            ) : (
+              <button className="p-2 bg-black text-white" onClick={handleLogin}>
+                login
+              </button>
+            )}
+          </div>
+        </div>
         <div className="mb-3">
           {/* <div className="flex justify-between items-center">
             <div className="flex items-center gap-5 text-white">
@@ -177,16 +266,17 @@ const Header = () => {
                   className="bg-transparent text-white text-[21px] outline-none underline max-w-[200px] truncate"
                   value={activeSite}
                 >
-                {manufacturer === "mercedes" ?mercedesSites.map((site, i) => (
-                    <option key={i} value={mercedesSitesLinks[i]}>
-                      {site}
-                    </option>
-                  )) :bmwSites.map((site, i) => (
-                    <option key={i} value={bmwSitesLinks[i]}>
-                      {site}
-                    </option>
-                  ))}
-                  
+                  {manufacturer === "mercedes"
+                    ? mercedesSites.map((site, i) => (
+                        <option key={i} value={mercedesSitesLinks[i]}>
+                          {site}
+                        </option>
+                      ))
+                    : bmwSites.map((site, i) => (
+                        <option key={i} value={bmwSitesLinks[i]}>
+                          {site}
+                        </option>
+                      ))}
                 </select>
               </div>
             </div>
