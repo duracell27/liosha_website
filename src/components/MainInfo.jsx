@@ -61,7 +61,6 @@ const MainInfo = () => {
   }, []);
 
   if (data !== "") {
-   
     const parser = new DOMParser();
     const htmlDoc = parser.parseFromString(data, "text/html");
 
@@ -69,7 +68,7 @@ const MainInfo = () => {
       ?.innerText;
     if (!partNumber) {
       toast.error("Part number not found");
-      setPageStatus('error');
+      setPageStatus("error");
       return;
     }
     replaces = htmlDoc?.getElementsByClassName("product-superseded-list")[0]
@@ -89,52 +88,59 @@ const MainInfo = () => {
     )[0]?.childNodes[0]?.innerText;
 
     tableRows = htmlDoc?.querySelectorAll(".fitment-row");
-
-    for (var i = 0; i < tableRows.length; i++) {
-      mas[i] = [];
-      let k = 0;
-      for (var j = 0; j < tableRows[i].childNodes.length; j++) {
-        if (tableRows[i].childNodes[j].innerText) {
-          mas[i][k] = tableRows[i].childNodes[j].innerText;
-          k++;
+   
+    if (tableRows.length > 0) {
+      for (var i = 0; i < tableRows.length; i++) {
+        mas[i] = [];
+        let k = 0;
+        for (var j = 0; j < tableRows[i].childNodes.length; j++) {
+          if (tableRows[i].childNodes[j].innerText) {
+            mas[i][k] = tableRows[i].childNodes[j].innerText;
+            k++;
+          }
         }
       }
-    }
 
-    mas.filter((row) => {
-      if (!unicFromMas.includes(row[2])) {
-        unicFromMas.push(row[2]);
-      }
-    });
-
-    mas.sort(); // від цього залежить функція sortYears
-    unicFromMas.map((unicModel) => {
-      let yearsArr = [];
-      mas.forEach((row) => {
-        if (unicModel === row[2]) {
-          yearsArr.push(Number(row[0].trim()));
+      mas.filter((row) => {
+        if (!unicFromMas.includes(row[2])) {
+          unicFromMas.push(row[2]);
         }
       });
-      compabilityObj[unicModel] = sortYears(yearsArr);
-    });
+
+      mas.sort(); // від цього залежить функція sortYears
+      unicFromMas.map((unicModel) => {
+        let yearsArr = [];
+        mas.forEach((row) => {
+          if (unicModel === row[2]) {
+            yearsArr.push(Number(row[0].trim()));
+          }
+        });
+        compabilityObj[unicModel] = sortYears(yearsArr);
+      });
+
+      compabilityObj = Object.keys(compabilityObj)
+        .sort()
+        .reduce((accumulator, key) => {
+          accumulator[key] = compabilityObj[key];
+
+          return accumulator;
+        }, {});
+    }
+
     if (replaces?.length > 0) {
       replacesVariants = generateVariationsForReplaces(replaces, partNumber);
     }
 
     let ul = htmlDoc?.querySelectorAll(".secondary-images");
-    ul[0].childNodes.forEach((li) => {
-      if (li.childNodes.length > 0) {
-        images.push(`https:${li.childNodes[1].attributes[4].value}`);
-      }
-    });
-
-    compabilityObj = Object.keys(compabilityObj)
-      .sort()
-      .reduce((accumulator, key) => {
-        accumulator[key] = compabilityObj[key];
-
-        return accumulator;
-      }, {});
+    
+    if (ul.length > 0) {
+      ul[0].childNodes.forEach((li) => {
+        if (li.childNodes.length > 0) {
+          images.push(`https:${li.childNodes[1].attributes[4].value}`);
+        }
+      });
+    }
+    
   }
   // ця функція приймає масив років, і сортує їх в послідовності по типу 2008-2012
   function sortYears(array) {
@@ -249,7 +255,7 @@ const MainInfo = () => {
           </div>
           <div className="section mt-6">
             <h3 className="label">Position</h3>
-            <p>{position?.length > 0 ? { position } : "No information"} </p>
+            <p>{position?.length > 0 ? position : "No information"} </p>
           </div>
           <hr className="border border-gray my-12" />
           <div className="section" ref={replacesRef}>
