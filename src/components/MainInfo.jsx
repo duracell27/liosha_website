@@ -6,18 +6,18 @@ import chevron from "../img/chevron.svg";
 
 import toast from "react-hot-toast";
 import { HashLink } from "react-router-hash-link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronUp, faClone } from "@fortawesome/free-solid-svg-icons";
 
 const MainInfo = () => {
   let {
-    pageStatus,
     setPageStatus,
-    input,
-    setInput,
     data,
-    setData,
     manufacturer,
-    setManufacturer,
+    dark
   } = useContext(CarModel);
+
+
   const [activeCompatibility, setActiveCompatibility] = useState(null);
   const [activeReplaces, setActiveReplaces] = useState(false);
   const [activeDesc, setActiveDes] = useState(false);
@@ -217,7 +217,7 @@ const MainInfo = () => {
   // }
 
   return partNumber ? (
-    <div className="py-[50px] px-6">
+    <div className="py-[50px] px-6 dark:bg-dark-bg">
       <div className="max-w-[1152px] mx-auto flex gap-7 flex-wrap-reverse sm:flex-nowrap">
         <div className="w-full sm:w-[25%]">
           {images?.map((image, index) => (
@@ -232,41 +232,41 @@ const MainInfo = () => {
         </div>
         <div className=" w-full sm:w-[75%]">
           <div className="section">
-            <h3 className="text-[36px]">{title}</h3>
-            <p>
+            <h3 className="text-[36px] dark:text-dark-text">{title}</h3>
+            <p className="dark:text-dark-text">
               {`Other names: ${
                 manufacturer === "mercedes" ? description : otherNames
               }`}
             </p>
           </div>
           <div className="section mt-6">
-            <h3 className="label">Part number</h3>
+            <h3 className="label dark:text-dark-text">Part number</h3>
             {manufacturer === "mercedes" ? (
-              <p className="whitespace-pre">{`${partNumber}   |   ${`A${partNumber.replace(
+              <p className="whitespace-pre dark:text-dark-text">{`${partNumber}   |   ${`A${partNumber.replace(
                 /-/g,
                 ""
               )}`}`}</p>
             ) : (
-              <p className="whitespace-pre">{`${partNumber}   |   ${`${partNumber.replace(
+              <p className="whitespace-pre dark:text-dark-text">{`${partNumber}   |   ${`${partNumber.replace(
                 /-/g,
                 ""
               )}`}   |   ${partNumber.replace(/-/g, "").slice(-7)}`}</p>
             )}
           </div>
           <div className="section mt-6">
-            <h3 className="label">Position</h3>
-            <p>{position?.length > 0 ? position : "No information"} </p>
+            <h3 className="label dark:text-dark-text">Position</h3>
+            <p className="dark:text-dark-text">{position?.length > 0 ? position : "No information"} </p>
           </div>
           <hr className="border border-gray my-12" />
           <div className="section" ref={replacesRef}>
-            <h3 className="label">Replaces</h3>
+            <h3 className="label dark:text-dark-text">Replaces</h3>
             <div
               className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
                 activeReplaces ? " border-2" : ""
               }`}
             >
               <ReactTextareaAutosize
-                className="w-[96%] outline-none resize-none"
+                className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
                 maxRows={6}
                 defaultValue={replacesVariants}
               />
@@ -277,29 +277,29 @@ const MainInfo = () => {
                   toast.success("Replaces copied");
                 }}
               >
-                <img src={copyButton} alt="copy"></img>
+                <FontAwesomeIcon icon={faClone} className={dark?'dark:text-dark-text':'text-lightblack'}/>
               </button>
             </div>
           </div>
           <div className="section mt-12" ref={compRef}>
-            <h3 className="label">Compatibility</h3>
+            <h3 className="label dark:text-dark-text">Compatibility</h3>
             <ul>
               <li className="flex gap-6 h-[38px] items-center rounded-md font-bold text-[13px]">
-                <span className="min-w-[74px] pl-[24px]">№</span>
-                <span className="min-w-[180px]">Model</span>
-                <span className="min-w-[100px]">Years</span>
+                <span className="min-w-[74px] pl-[24px] dark:text-dark-text">№</span>
+                <span className="min-w-[180px] dark:text-dark-text">Model</span>
+                <span className="min-w-[100px] dark:text-dark-text">Years</span>
               </li>
               {Object.keys(compabilityObj).map((keyName, index) => (
                 <li
                   key={index}
-                  className={`flex stripped gap-6 h-[38px] items-center rounded-md text-[13px] ${
+                  className={`flex ${dark?" stripped-dark ":' stripped '} gap-6 h-[38px] items-center text-[13px] ${
                     activeCompatibility == index ? " border-2" : ""
                   }`}
                   onClick={() => setActiveCompatibility(index)}
                 >
-                  <span className="min-w-[74px] pl-[24px]">{index + 1}</span>
-                  <span className="min-w-[180px] font-semibold">{keyName}</span>
-                  <span className="min-w-[100px]">
+                  <span className="min-w-[74px] pl-[24px] dark:text-dark-text">{index + 1}</span>
+                  <span className="min-w-[180px] font-semibold dark:text-dark-text">{keyName}</span>
+                  <span className="min-w-[100px] dark:text-dark-text">
                     {compabilityObj[keyName]}
                   </span>
                 </li>
@@ -307,14 +307,14 @@ const MainInfo = () => {
             </ul>
           </div>
           <div className="section mt-12 relative" ref={descRef}>
-            <h3 className="label">Description</h3>
+            <h3 className="label dark:text-dark-text">Description</h3>
             <div
               className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
                 activeDesc ? " border-2" : ""
               }`}
             >
               <ReactTextareaAutosize
-                className="w-[96%] outline-none resize-none whitespace-pre-line"
+                className="w-[96%] outline-none resize-none whitespace-pre-line dark:bg-dark-bg dark:text-dark-text"
                 maxRows={6}
                 defaultValue={extraDes}
               ></ReactTextareaAutosize>
@@ -325,19 +325,19 @@ const MainInfo = () => {
                   toast.success("Description copied");
                 }}
               >
-                <img src={copyButton} alt="copy"></img>
+                <FontAwesomeIcon icon={faClone} className={dark?'dark:text-dark-text':'text-lightblack'}/>
               </button>
             </div>
             <a
-              className="hidden sm:flex justify-center items-center absolute sm:left-[-80px] sm:top-[115px] xl:left-[unset] xl:right-[-80px] xl:top-[115px] w-[48px] h-[48px] bg-black rounded-full"
+              className="hidden sm:flex justify-center items-center absolute sm:left-[-80px] sm:top-[115px] xl:left-[unset] xl:right-[-80px] xl:top-[115px] w-[48px] h-[48px] bg-black rounded-full text-gray dark:text-black dark:bg-dark-button-bg"
               href={"/#top"}
             >
-              <img src={chevron} />
+              <FontAwesomeIcon icon={faChevronUp}/>
             </a>
           </div>
           <div className="section mt-12">
             <div className="flex justify-end">
-              <button className="bg-black py-3 px-10 rounded-lg text-white font-bold uppercase">
+              <button className="bg-black py-3 px-10 rounded-lg text-white dark:text-black dark:bg-dark-button-bg font-bold uppercase">
                 save
               </button>
             </div>

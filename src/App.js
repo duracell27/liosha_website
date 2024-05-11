@@ -18,12 +18,27 @@ function App() {
   const [data, setData] = useState("");
   const [user, setUser] = useState(null);
 
+  const [dark, setDark] = useState(false);
+
+    const darkModeHandler = () => {
+        setDark(!dark);
+        localStorage.setItem('themeDark', JSON.stringify(!dark));
+        document.documentElement.classList.toggle("dark");
+    }
+
   useState(() => {
     const userInSession = lookInSession("user");
     if (userInSession) {
       setUser(JSON.parse(userInSession));
     } else {
       setUser(null);
+    }
+    
+    const darkTheme = JSON.parse(localStorage.getItem("themeDark"))
+    if(darkTheme){
+      
+      setDark(true);
+      document.documentElement.classList.add("dark");
     }
   }, []);
 
@@ -40,6 +55,9 @@ function App() {
         setData,
         user,
         setUser,
+        dark,
+        setDark,
+        darkModeHandler,
       }}
     >
       <BrowserRouter>

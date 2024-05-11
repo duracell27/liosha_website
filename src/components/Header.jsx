@@ -2,10 +2,19 @@ import React, { useContext, useEffect, useState } from "react";
 import { CarModel } from "../App";
 import bmw from "../img/bmw.svg";
 import mercedes from "../img/mercedes.svg";
+import moon from "../img/moon.svg";
+import sun from "../img/sun.svg";
 import cross from "../img/cross.svg";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { logoutUser, storeInSession } from "../utils/session";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCross,
+  faMoon,
+  faSun,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Header = () => {
   let {
@@ -19,6 +28,8 @@ const Header = () => {
     setData,
     user,
     setUser,
+    dark,
+    darkModeHandler,
   } = useContext(CarModel);
 
   const mercedesSites = [
@@ -125,7 +136,9 @@ const Header = () => {
 
   const getAvailableStorages = () => {
     axios
-      .post(process.env.REACT_APP_BASE_URL + "/getAvaliableStorages", { id: user.id })
+      .post(process.env.REACT_APP_BASE_URL + "/getAvaliableStorages", {
+        id: user.id,
+      })
       .then((response) => {
         if (response.status === 200) {
           setStorages(response.data);
@@ -145,11 +158,14 @@ const Header = () => {
   }, [user]);
 
   return (
-    <nav className="header-bg py-[50px]" id="top">
+    <nav
+      className={`${dark ? "header-bg-dark" : "header-bg"} py-[50px]`}
+      id="top"
+    >
       <div className="max-w-[1200px] px-6 mx-auto">
         <div className="flex justify-between items-center">
           <h1 className="text-white text-[51px] mb-4">Get car part info</h1>
-          <div className="">
+          <div className="flex items-center gap-3">
             {showLoginFields ? (
               <>
                 <input
@@ -188,6 +204,24 @@ const Header = () => {
                 login
               </button>
             )}
+
+            <button
+              className="flex items-center justify-center "
+              onClick={() => darkModeHandler()}
+            >
+              {dark && (
+                <FontAwesomeIcon
+                  icon={faSun}
+                  className="bg-black text-white p-3"
+                />
+              )}
+              {!dark && (
+                <FontAwesomeIcon
+                  icon={faMoon}
+                  className="bg-black text-white p-3"
+                />
+              )}
+            </button>
           </div>
         </div>
         <div className="mb-3">
@@ -241,7 +275,9 @@ const Header = () => {
                     value="mercedes"
                     checked={manufacturer === "mercedes"}
                   />
-                  <span className="checkmark"></span>
+                  <span
+                    className={`checkmark ${dark && "checkmark-dark"}`}
+                  ></span>
                   mercedes
                 </label>
                 <label className="labelRadio flex items-center">
@@ -253,7 +289,9 @@ const Header = () => {
                     value="bmw"
                     checked={manufacturer === "bmw"}
                   />
-                  <span className="checkmark"></span>
+                  <span
+                    className={`checkmark ${dark && "checkmark-dark"}`}
+                  ></span>
                   bmw
                 </label>
               </div>
@@ -290,7 +328,7 @@ const Header = () => {
               </div>
               <div className="relative flex-1">
                 <input
-                  className="w-full rounded-r-lg h-[50px] indent-5 outline-none"
+                  className="w-full rounded-r-lg h-[50px] indent-5 outline-none dark:bg-dark-input-bg dark:text-dark-button-bg"
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -300,11 +338,17 @@ const Header = () => {
                       : "Enter Mercedes part number"
                   }
                 />
-                <img
+                {/* <img
                   onClick={() => setInput("")}
-                  className="absolute cursor-pointer right-0 top-0 bg-white p-4 rounded-r-lg"
+                  className="absolute cursor-pointer right-0 top-[1px] bg-white dark:bg-transparent p-4 rounded-r-lg"
                   src={cross}
                   alt="close"
+                /> */}
+
+                <FontAwesomeIcon
+                  onClick={() => setInput("")}
+                  className={`absolute cursor-pointer w-6 h-6 right-0 top-[1px] bg-white dark:bg-transparent p-3 rounded-r-lg ${dark?'dark:text-yellow':'text-darkgray'}`}
+                  icon={faXmark}
                 />
               </div>
             </div>
@@ -313,7 +357,7 @@ const Header = () => {
           <div className="">
             <button
               onClick={handleGetInfo}
-              className="bg-black text-white uppercase font-bold cursor-pointer px-[20px] py-[14px] rounded-lg text-center leading-12"
+              className="bg-black dark:bg-dark-button-bg text-white dark:text-black uppercase font-bold cursor-pointer px-[20px] py-[14px] rounded-lg text-center leading-12"
             >
               Get information
             </button>

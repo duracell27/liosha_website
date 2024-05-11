@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap");
 
 body {
   margin: 0;
@@ -13,24 +13,36 @@ body {
   scroll-behavior: smooth;
 }
 
-.header-bg{
-  background-image: url('./img/header_image.png');
+.header-bg {
+  background-image: url("./img/header_image.png");
+}
+.header-bg-dark {
+  background-image: url("./img/header_image_dark.png");
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
-.label{
-  @apply text-[21px] 
+.label {
+  @apply text-[21px];
 }
 
-.stripped:nth-child(odd){
-  background-color: #F5F5F5;
+.stripped:nth-child(odd) {
+  background-color: #f5f5f5;
 }
 
-.stripped:nth-child(even){
-
-@apply bg-white
+.stripped:nth-child(even) {
+  @apply bg-white;
 }
 
-.labelRadio{
+.stripped-dark:nth-child(odd) {
+  @apply bg-dark-input-bg border-t border-b border-dark-border;
+}
+
+.stripped-dark:nth-child(even) {
+  @apply bg-dark-bg;
+}
+
+.labelRadio {
   display: block;
   position: relative;
   padding-left: 27px;
@@ -42,7 +54,7 @@ body {
   user-select: none;
 }
 
-.labelRadioInput{
+.labelRadioInput {
   position: absolute;
   opacity: 0;
   cursor: pointer;
@@ -50,7 +62,7 @@ body {
   width: 0;
 }
 
-.checkmark{
+.checkmark {
   position: absolute;
   top: 7px;
   left: 0;
@@ -60,6 +72,10 @@ body {
   border-radius: 50%;
 }
 
+.checkmark-dark {
+  background-color: #505869;
+}
+
 /* On mouse-over, add a grey background color */
 .labelRadio:hover input ~ .checkmark {
   background-color: #ccc;
@@ -67,7 +83,7 @@ body {
 
 /* When the radio button is checked, add a blue background */
 .labelRadio input:checked ~ .checkmark {
-  background-color: #F5E6BE;
+  background-color: #f5e6be;
 }
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
@@ -82,12 +98,12 @@ body {
   display: block;
 }
 
-/* Style the indicator (dot/circle) */ 
+/* Style the indicator (dot/circle) */
 .labelRadio .checkmark::after {
   top: 6px;
   left: 6px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2A2A2A;
+  background: #2a2a2a;
 }

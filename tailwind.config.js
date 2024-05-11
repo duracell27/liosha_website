@@ -5,6 +5,7 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     colors: {
       ...color,
@@ -16,6 +17,12 @@ module.exports = {
       'darkgray': '#8C8C8C',
       'blue': '#0A77C5',
       'transparent': 'transparent',
+      // darktheme colors 
+      'dark-bg': '#444B59',
+      'dark-input-bg': '#505869',
+      'dark-button-bg': '#DDDBDB',
+      'dark-text': '#DDDBDB',
+      'dark-border': '#70798C',
     }
   },
   plugins: [],
