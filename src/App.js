@@ -34,9 +34,13 @@ function App() {
       setUser(null);
     }
     
+    //ставить чорну тему якщо в локастореджі поставлено
     const darkTheme = JSON.parse(localStorage.getItem("themeDark"))
     if(darkTheme){
-      
+      setDark(true);
+      document.documentElement.classList.add("dark");
+    }else{
+      //дефолотно ставить чорну тему
       setDark(true);
       document.documentElement.classList.add("dark");
     }

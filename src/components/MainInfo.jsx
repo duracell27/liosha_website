@@ -8,19 +8,15 @@ import toast from "react-hot-toast";
 import { HashLink } from "react-router-hash-link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faClone } from "@fortawesome/free-solid-svg-icons";
+import Dropdown from "./Dropdown";
 
 const MainInfo = () => {
-  let {
-    setPageStatus,
-    data,
-    manufacturer,
-    dark
-  } = useContext(CarModel);
-
+  let { setPageStatus, data, manufacturer, dark } = useContext(CarModel);
 
   const [activeCompatibility, setActiveCompatibility] = useState(null);
   const [activeReplaces, setActiveReplaces] = useState(false);
   const [activeDesc, setActiveDes] = useState(false);
+  const [highlightArray, setHighlightArray] = useState([])
   const compRef = useRef();
   const replacesRef = useRef();
   const descRef = useRef();
@@ -88,7 +84,7 @@ const MainInfo = () => {
     )[0]?.childNodes[0]?.innerText;
 
     tableRows = htmlDoc?.querySelectorAll(".fitment-row");
-   
+
     if (tableRows.length > 0) {
       for (var i = 0; i < tableRows.length; i++) {
         mas[i] = [];
@@ -132,7 +128,7 @@ const MainInfo = () => {
     }
 
     let ul = htmlDoc?.querySelectorAll(".secondary-images");
-    
+
     if (ul.length > 0) {
       ul[0].childNodes.forEach((li) => {
         if (li.childNodes.length > 0) {
@@ -140,7 +136,6 @@ const MainInfo = () => {
         }
       });
     }
-    
   }
   // ця функція приймає масив років, і сортує їх в послідовності по типу 2008-2012
   function sortYears(array) {
@@ -216,6 +211,65 @@ const MainInfo = () => {
   //   return;
   // }
 
+  function workWithHighlightArray(id, type, idArr){
+    if(type === 'single'){
+      if(highlightArray.includes(id)){
+       
+        setHighlightArray(highlightArray.filter(item=>item!==id))
+      }else{
+  
+        setHighlightArray([...highlightArray, id])
+      }
+    }else if (type === 'arr'){
+
+      // Check if all models are already in highlightArray
+    const allModelsPresent = idArr.every(model => highlightArray.includes(model));
+
+    // If all models are present, remove them, otherwise add them
+    if (allModelsPresent) {
+      const newHighlightArray = highlightArray.filter(model => !idArr.includes(model));
+      setHighlightArray(newHighlightArray);
+    } else {
+      setHighlightArray(prevArray => [...prevArray, ...idArr]);
+    }
+        // else{
+        //   console.log('from push', ArrItem)
+        //   setHighlightArray([...highlightArray, ArrItem])
+        // }
+
+        // console.log('loop hl arr', highlightArray)
+      
+      
+    }
+    
+  }
+
+  console.log("compatibility obj", compabilityObj);
+
+  const groupedBySeries = {};
+
+  // Iterate through the keys of the object
+  for (const model in compabilityObj) {
+    // Extract the series name (e.g., "GL", "ML", "R")
+    let series=null
+    if(manufacturer === 'mercedes'){
+      series = model.split(" ")[0];
+    }else if(manufacturer === 'bmw'){
+      series = model[0];
+    }
+
+    // If the series doesn't exist in the grouped object, create an empty array for it
+    if (!groupedBySeries[series]) {
+      groupedBySeries[series] = [];
+    }
+
+    // Push the model and its production year range into the corresponding series array
+    groupedBySeries[series].push({ [model]: compabilityObj[model] });
+  }
+
+  console.log("compatibility obj NEW", groupedBySeries);
+  console.log("highlited array = ", highlightArray);
+
   return partNumber ? (
     <div className="py-[50px] px-6 dark:bg-dark-bg">
       <div className="max-w-[1152px] mx-auto flex gap-7 flex-wrap-reverse sm:flex-nowrap">
@@ -255,7 +309,9 @@ const MainInfo = () => {
           </div>
           <div className="section mt-6">
             <h3 className="label dark:text-dark-text">Position</h3>
-            <p className="dark:text-dark-text">{position?.length > 0 ? position : "No information"} </p>
+            <p className="dark:text-dark-text">
+              {position?.length > 0 ? position : "No information"}{" "}
+            </p>
           </div>
           <hr className="border border-gray my-12" />
           <div className="section" ref={replacesRef}>
@@ -277,7 +333,10 @@ const MainInfo = () => {
                   toast.success("Replaces copied");
                 }}
               >
-                <FontAwesomeIcon icon={faClone} className={dark?'dark:text-dark-text':'text-lightblack'}/>
+                <FontAwesomeIcon
+                  icon={faClone}
+                  className={dark ? "dark:text-dark-text" : "text-lightblack"}
+                />
               </button>
             </div>
           </div>
@@ -285,20 +344,28 @@ const MainInfo = () => {
             <h3 className="label dark:text-dark-text">Compatibility</h3>
             <ul>
               <li className="flex gap-6 h-[38px] items-center rounded-md font-bold text-[13px]">
-                <span className="min-w-[74px] pl-[24px] dark:text-dark-text">№</span>
+                <span className="min-w-[74px] pl-[24px] dark:text-dark-text">
+                  №
+                </span>
                 <span className="min-w-[180px] dark:text-dark-text">Model</span>
                 <span className="min-w-[100px] dark:text-dark-text">Years</span>
               </li>
               {Object.keys(compabilityObj).map((keyName, index) => (
                 <li
                   key={index}
-                  className={`flex ${dark?" stripped-dark ":' stripped '} gap-6 h-[38px] items-center text-[13px] ${
+                  className={`flex ${
+                    dark ? " stripped-dark " : " stripped "
+                  } gap-6 h-[38px] items-center text-[13px] ${
                     activeCompatibility == index ? " border-2" : ""
                   }`}
                   onClick={() => setActiveCompatibility(index)}
                 >
-                  <span className="min-w-[74px] pl-[24px] dark:text-dark-text">{index + 1}</span>
-                  <span className="min-w-[180px] font-semibold dark:text-dark-text">{keyName}</span>
+                  <span className="min-w-[74px] pl-[24px] dark:text-dark-text">
+                    {index + 1}
+                  </span>
+                  <span className="min-w-[180px] font-semibold dark:text-dark-text">
+                    {keyName}
+                  </span>
                   <span className="min-w-[100px] dark:text-dark-text">
                     {compabilityObj[keyName]}
                   </span>
@@ -306,6 +373,14 @@ const MainInfo = () => {
               ))}
             </ul>
           </div>
+
+          <div className="section mt-12">
+            <h3 className="label dark:text-dark-text">Compatibility NEW (beta)</h3>
+            {Object.keys(groupedBySeries).map((keyName, index) => (
+              <Dropdown key={index} dropdownHeading={keyName} data={groupedBySeries[keyName]} highlightFn={workWithHighlightArray} highlightArray={highlightArray} manufacturer={manufacturer}/>
+            ))}
+          </div>
+
           <div className="section mt-12 relative" ref={descRef}>
             <h3 className="label dark:text-dark-text">Description</h3>
             <div
@@ -325,14 +400,17 @@ const MainInfo = () => {
                   toast.success("Description copied");
                 }}
               >
-                <FontAwesomeIcon icon={faClone} className={dark?'dark:text-dark-text':'text-lightblack'}/>
+                <FontAwesomeIcon
+                  icon={faClone}
+                  className={dark ? "dark:text-dark-text" : "text-lightblack"}
+                />
               </button>
             </div>
             <a
               className="hidden sm:flex justify-center items-center absolute sm:left-[-80px] sm:top-[115px] xl:left-[unset] xl:right-[-80px] xl:top-[115px] w-[48px] h-[48px] bg-black rounded-full text-gray dark:text-black dark:bg-dark-button-bg"
               href={"/#top"}
             >
-              <FontAwesomeIcon icon={faChevronUp}/>
+              <FontAwesomeIcon icon={faChevronUp} />
             </a>
           </div>
           <div className="section mt-12">

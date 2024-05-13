@@ -166,7 +166,7 @@ const Header = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-white text-[51px] mb-4">Get car part info</h1>
           <div className="flex items-center gap-3">
-            {showLoginFields ? (
+            {/* {showLoginFields ? (
               <>
                 <input
                   type="text"
@@ -203,7 +203,7 @@ const Header = () => {
               <button className="p-2 bg-black text-white" onClick={handleLogin}>
                 login
               </button>
-            )}
+            )} */}
 
             <button
               className="flex items-center justify-center "
@@ -297,7 +297,7 @@ const Header = () => {
               </div>
               <div className="">
                 <span className="text-white text-[21px]">
-                  Enter part link from one of
+                Pulling data from
                 </span>
                 <select
                   onChange={handleSelectSite}
