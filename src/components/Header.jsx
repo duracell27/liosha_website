@@ -149,6 +149,13 @@ const Header = () => {
       });
   };
 
+  const handleSearchByEnter = (e) => {
+    if (e.key === "Enter") {
+      handleGetInfo();
+      console.log('enter ')
+    }
+  }
+
   console.log(storages);
 
   useEffect(() => {
@@ -331,6 +338,7 @@ const Header = () => {
                   className="w-full rounded-r-lg h-[50px] indent-5 outline-none dark:bg-dark-input-bg dark:text-dark-button-bg"
                   type="text"
                   value={input}
+                  onKeyUp={handleSearchByEnter}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={
                     manufacturer == "bmw"
