@@ -30,6 +30,7 @@ const Header = () => {
     setUser,
     dark,
     darkModeHandler,
+    setUseSecoundParser,
   } = useContext(CarModel);
 
   const mercedesSites = [
@@ -53,9 +54,11 @@ const Header = () => {
     "https://www.mbonlineparts.com/search?search_str=",
   ];
   const bmwSitesLinks = ["https://www.bmwpartsnow.com/search?search_str="];
+  //"https://parts.bmwofstratham.com/productSearch.aspx?searchTerm="
 
   const [activeSite, setActiveSite] = useState(mercedesSitesLinks[0]);
   const [showLoginFields, setShowLoginFields] = useState(false);
+
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [storages, setStorages] = useState(null);
@@ -87,6 +90,26 @@ const Header = () => {
     setUser(null);
   };
 
+  const sendQuery = (input) => {
+    console.log('sendq', input)
+    console.log('url', `${activeSite}${input}`)
+    axios
+      // .get(`https://www.mboemparts.com/search?search_str=${input}`)
+      .get(`${activeSite}${input}`)
+      .then((res) => {
+        if (res.status === 200) {
+          setData(res.data);
+          setPageStatus("mainInfo");
+        } else {
+          setPageStatus("error");
+        }
+      })
+      .catch((err) => {
+        setPageStatus("error");
+        toast.error("Помилка отримання даних, або cors виключений");
+      });
+  };
+
   const handleGetInfo = () => {
     if (manufacturer === "bmw" && input.includes("mercedes")) {
       toast.error("можливо ви ввели ссилку від мерседес");
@@ -104,21 +127,37 @@ const Header = () => {
     }
 
     setPageStatus("loading");
-    axios
-      // .get(`https://www.mboemparts.com/search?search_str=${input}`)
-      .get(`${activeSite}${input}`)
-      .then((res) => {
-        if (res.status === 200) {
-          setData(res.data);
-          setPageStatus("mainInfo");
-        } else {
+    setUseSecoundParser(false);
+    if (manufacturer === "bmw" && input.length === 7) {
+      axios
+        // .get(`https://www.mboemparts.com/search?search_str=${input}`)
+        .get(`https://bimmercat.com/bmw/en/parts/part_search?pn=${input}`)
+        .then((res) => {
+          if (res.status === 200) {
+            // console.log("bimer", res.data);
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(res.data, "text/html");
+            const longPartNumber = htmlDoc?.getElementsByClassName(
+              "col-7 col-md-7 pl-0"
+            )[0]?.innerText;
+            console.log("part", longPartNumber);
+            setInput(longPartNumber);
+            sendQuery(longPartNumber);
+            // setData(res.data);
+            // setPageStatus("mainInfo");
+          } else {
+            // setPageStatus("error");
+          }
+        })
+        .catch((err) => {
           setPageStatus("error");
-        }
-      })
-      .catch((err) => {
-        setPageStatus("error");
-        toast.error("Помилка отримання даних, або cors виключений");
-      });
+          toast.error(
+            "не можу отримати повний partnumber з бімеркет, або cors виключений"
+          );
+        });
+    } else {
+      sendQuery(input);
+    }
   };
 
   const handleSelect = (e) => {
@@ -152,11 +191,8 @@ const Header = () => {
   const handleSearchByEnter = (e) => {
     if (e.key === "Enter") {
       handleGetInfo();
-      console.log('enter ')
     }
-  }
-
-  console.log(storages);
+  };
 
   useEffect(() => {
     if (user) {
@@ -304,7 +340,7 @@ const Header = () => {
               </div>
               <div className="">
                 <span className="text-white text-[21px]">
-                Pulling data from
+                  Pulling data from
                 </span>
                 <select
                   onChange={handleSelectSite}
@@ -355,7 +391,9 @@ const Header = () => {
 
                 <FontAwesomeIcon
                   onClick={() => setInput("")}
-                  className={`absolute cursor-pointer w-6 h-6 right-0 top-[1px] bg-white dark:bg-transparent p-3 rounded-r-lg ${dark?'dark:text-yellow':'text-darkgray'}`}
+                  className={`absolute cursor-pointer w-6 h-6 right-0 top-[1px] bg-white dark:bg-transparent p-3 rounded-r-lg ${
+                    dark ? "dark:text-yellow" : "text-darkgray"
+                  }`}
                   icon={faXmark}
                 />
               </div>

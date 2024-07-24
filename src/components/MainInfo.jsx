@@ -9,9 +9,40 @@ import { HashLink } from "react-router-hash-link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faClone } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "./Dropdown";
+import axios from "axios";
+
+function removeDuplicates(arr) {
+  // Function to normalize the string by removing dashes and spaces
+  function normalize(str) {
+    return str.replace(/[-\s]/g, "");
+  }
+
+  // Use a Set to track unique normalized strings
+  let uniqueSet = new Set();
+  let result = [];
+
+  for (let item of arr) {
+    let normalizedItem = normalize(item);
+    if (!uniqueSet.has(normalizedItem)) {
+      uniqueSet.add(normalizedItem);
+      result.push(item);
+    }
+  }
+
+  return result;
+}
 
 const MainInfo = () => {
-  let { setPageStatus, data, manufacturer, dark } = useContext(CarModel);
+  let {
+    setPageStatus,
+    data,
+    manufacturer,
+    dark,
+    setData,
+    input,
+    useSecoundParser,
+    setUseSecoundParser,
+  } = useContext(CarModel);
 
   const [activeCompatibility, setActiveCompatibility] = useState(null);
   const [activeReplaces, setActiveReplaces] = useState(false);
@@ -68,13 +99,47 @@ const MainInfo = () => {
 
     partNumber = htmlDoc?.getElementsByClassName("list-value sku-display")[0]
       ?.innerText;
+
+    if(useSecoundParser){
+      partNumber = htmlDoc?.getElementsByClassName("body-3 stock-code-text")[0]?.children[0]?.innerText
+      
+      // ?.innerText;
+    }
+
     if (!partNumber) {
+      //для бмв інший парсер
+      if ((manufacturer = "bmw")) {
+        toast('Пробую знайти на резервному сайті хоть щось...')
+        axios
+          .get(
+            `https://parts.bmwofstratham.com/productSearch.aspx?searchTerm=${input}`
+          )
+          .then((res) => {
+            if (res.status === 200) {
+              setUseSecoundParser(true)
+              setData(res.data);
+              setPageStatus("mainInfo");
+            } else {
+              setPageStatus("error");
+            }
+          })
+          .catch((err) => {
+            setPageStatus("error");
+            toast.error("Помилка отримання даних, або cors виключений");
+          });
+      }
+      //для бмв інший парсер
       toast.error("Part number not found");
       setPageStatus("error");
       return;
     }
     replaces = htmlDoc?.getElementsByClassName("product-superseded-list")[0]
       ?.childNodes[3]?.innerText;
+
+    if(useSecoundParser){
+      replaces = htmlDoc?.getElementsByClassName("body-3 alt-stock-code-text")[0]
+       ?.childNodes[0]?.innerText
+    }
     position =
       htmlDoc?.getElementsByClassName("positions")[0]?.childNodes[3]?.innerText;
 
@@ -129,13 +194,9 @@ const MainInfo = () => {
         }, {});
     }
 
-    if (replaces?.length > 0) {
-      replacesVariants = generateVariationsForReplaces(
-        replaces,
-        partNumber,
-        "first"
-      );
-    }
+    // if (replaces?.length > 0) {
+    replacesVariants = generateVariationsForReplaces(replaces, partNumber);
+    // }
 
     let ul = htmlDoc?.querySelectorAll(".secondary-images");
 
@@ -177,20 +238,53 @@ const MainInfo = () => {
 
     return ranges.join(",");
   }
+
   function generateVariationsForReplaces(inputString, mainPartNumber, queue) {
-    let elements = inputString.split(", ");
-    elements.unshift(mainPartNumber);
+    let elements = [];
+    if (inputString?.length > 0) {
+      if(useSecoundParser){
+        elements.push(...inputString?.split("; "));
+      }else{
+        elements.push(...inputString?.split(", "));
+      }
+      elements.unshift(mainPartNumber); // додаємо основний номер заміни в начало масиву
+    } else {
+      elements.push(mainPartNumber);
+    }
+
+    elements = removeDuplicates(elements);
+
+   
     let elementsFirstPart = [];
     let elementsSecondPart = [];
+    let elementsFirstPartBMW = [];
+    let elementsSecondPartBMW = [];
 
     console.warn("Too many replaces, only first 4 will be used");
+
     elementsFirstPart = elements.slice(0, 4);
     elementsSecondPart = elements.slice(4, 8);
 
+    const pretending1 = elements.slice(8, 9);
+    const pretending2 = elements.slice(9, 10);
+
+    if (pretending1.length > 0) {
+      if (elementsFirstPart.length + pretending1.length < 64) {
+        elementsFirstPart.push(...pretending1);
+      }
+    }
+
+    if (pretending2.length > 0) {
+      if (elementsSecondPart.length + pretending2.length < 64) {
+        elementsSecondPart.push(...pretending2);
+      }
+    }
+
+    elementsFirstPartBMW = elements.slice(0, 7);
+    elementsSecondPartBMW = elements.slice(7, 14);
+
     let variations = [];
     let variations2 = [];
-
-    console.log("elements", elements);
 
     if (manufacturer === "mercedes") {
       elementsFirstPart.forEach((element) => {
@@ -217,31 +311,39 @@ const MainInfo = () => {
         // variations.push("A" + spacedElement); // варіація 5
         // variations.push("A" + element); // варіація 6
       });
-      return { var1: variations.join(", "), var2: variations2.join(", ") };
+      return { var1: variations.join(" "), var2: variations2.join(" ") };
     } else if (manufacturer === "bmw") {
-      elements.forEach((element) => {
-        let strippedElement = element.replace(/-/g, ""); // варіація 1
-        let spacedElement = element.replace(/-/g, " "); // варіація 2
+      elementsFirstPartBMW.forEach((element) => {
+        // let strippedElement = element.replace(/-/g, ""); // варіація 1
+        // let spacedElement = element.replace(/-/g, " "); // варіація 2
 
         let shortStrippedElement = element.replace(/-/g, "").slice(-7); // варіація 4
-        let shortSpacedElement = element.replace(/-/g, " ").slice(-9); // варіація 5
+        // let shortSpacedElement = element.replace(/-/g, " ").slice(-9); // варіація 5
 
-        variations.push(strippedElement); // варіація 1
-        variations.push(spacedElement); // варіація 2
-        variations.push(element); // варіація 3
+        // variations.push(strippedElement); // варіація 1
+        // variations.push(spacedElement); // варіація 2
+        // variations.push(element); // варіація 3
 
         variations.push(shortStrippedElement); // варіація 4
-        variations.push(shortSpacedElement); // варіація 5
+        // variations.push(shortSpacedElement); // варіація 5
       });
-      return variations.join(", ");
+      elementsSecondPartBMW.forEach((element) => {
+        // let strippedElement = element.replace(/-/g, ""); // варіація 1
+        // let spacedElement = element.replace(/-/g, " "); // варіація 2
+
+        let shortStrippedElement = element.replace(/-/g, "").slice(-7); // варіація 4
+        // let shortSpacedElement = element.replace(/-/g, " ").slice(-9); // варіація 5
+
+        // variations.push(strippedElement); // варіація 1
+        // variations.push(spacedElement); // варіація 2
+        // variations.push(element); // варіація 3
+
+        variations2.push(shortStrippedElement); // варіація 4
+        // variations.push(shortSpacedElement); // варіація 5
+      });
+      return { var1: variations.join(" "), var2: variations2.join(" ") };
     }
   }
-
-  // if (!partNumber) {
-  //   console.log("Please provide")
-  //   setPageStatus('error');
-  //   return;
-  // }
 
   function workWithHighlightArray(id, type, idArr) {
     if (type === "single") {
@@ -265,16 +367,8 @@ const MainInfo = () => {
       } else {
         setHighlightArray((prevArray) => [...prevArray, ...idArr]);
       }
-      // else{
-      //   console.log('from push', ArrItem)
-      //   setHighlightArray([...highlightArray, ArrItem])
-      // }
-
-      // console.log('loop hl arr', highlightArray)
     }
   }
-
-  console.log("compatibility obj", compabilityObj);
 
   const groupedBySeries = {};
 
@@ -297,8 +391,7 @@ const MainInfo = () => {
     groupedBySeries[series].push({ [model]: compabilityObj[model] });
   }
 
-  console.log("compatibility obj NEW", groupedBySeries);
-  console.log("highlited array = ", highlightArray);
+  
 
   return partNumber ? (
     <div className="py-[50px] px-6 dark:bg-dark-bg">
@@ -344,94 +437,188 @@ const MainInfo = () => {
             </p>
           </div>
           <hr className="border border-gray my-12" />
-            {manufacturer === 'mercedes' && (<>
+
+          {manufacturer === "mercedes" &&
+            replacesVariants?.var1?.length > 0 && (
+              <>
+                <div className="section" ref={replacesRef}>
+                  <h3 className="label dark:text-dark-text">
+                    Replaces{" "}
+                    <span className="text-sm">
+                      ({replacesVariants?.var1?.length} sym)
+                    </span>
+                  </h3>
+                  <div
+                    className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
+                      activeReplaces ? " border-2" : ""
+                    }`}
+                  >
+                    {" "}
+                    <ReactTextareaAutosize
+                      className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
+                      maxRows={6}
+                      defaultValue={replacesVariants.var1}
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(replacesVariants.var1);
+                        setActiveReplaces(true);
+                        toast.success("Replaces copied");
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faClone}
+                        className={
+                          dark ? "dark:text-dark-text" : "text-lightblack"
+                        }
+                      />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+          {manufacturer === "mercedes" &&
+            replacesVariants?.var2?.length > 0 && (
+              <>
+                <div className="section mt-2" ref={replacesRef}>
+                  <h3 className="label dark:text-dark-text">
+                    Replaces 2{" "}
+                    <span className="text-sm">
+                      ({replacesVariants?.var2?.length} sym)
+                    </span>
+                  </h3>
+                  <div
+                    className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
+                      activeReplaces ? " border-2" : ""
+                    }`}
+                  >
+                    {" "}
+                    <ReactTextareaAutosize
+                      className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
+                      maxRows={6}
+                      defaultValue={replacesVariants.var2}
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(replacesVariants.var2);
+                        setActiveReplaces2(true);
+                        toast.success("Replaces copied");
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faClone}
+                        className={
+                          dark ? "dark:text-dark-text" : "text-lightblack"
+                        }
+                      />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+          {manufacturer === "bmw" && replacesVariants?.var1?.length > 0 && (
+            <>
               <div className="section" ref={replacesRef}>
-            <h3 className="label dark:text-dark-text">Replaces</h3>
-            <div
-              className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
-                activeReplaces ? " border-2" : ""
-              }`}
-            >
-              {" "}
-              
-              <ReactTextareaAutosize
-                className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
-                maxRows={6}
-                defaultValue={replacesVariants.var1}
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(replacesVariants.var1);
-                  setActiveReplaces(true);
-                  toast.success("Replaces copied");
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faClone}
-                  className={dark ? "dark:text-dark-text" : "text-lightblack"}
-                />
-              </button>
-            </div>
-          </div>
-          <div className="section mt-2" ref={replacesRef}>
-            <h3 className="label dark:text-dark-text">Replaces 2</h3>
-            <div
-              className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
-                activeReplaces ? " border-2" : ""
-              }`}
-            >
-              {" "}
-              
-              <ReactTextareaAutosize
-                className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
-                maxRows={6}
-                defaultValue={replacesVariants.var2}
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(replacesVariants.var2);
-                  setActiveReplaces2(true);
-                  toast.success("Replaces copied");
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faClone}
-                  className={dark ? "dark:text-dark-text" : "text-lightblack"}
-                />
-              </button>
-            </div>
-          </div></>)}
+                <h3 className="label dark:text-dark-text">Replaces</h3>
+                <div
+                  className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
+                    activeReplaces ? " border-2" : ""
+                  }`}
+                >
+                  {" "}
+                  <ReactTextareaAutosize
+                    className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
+                    maxRows={6}
+                    defaultValue={replacesVariants.var1}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(replacesVariants.var1);
+                      setActiveReplaces(true);
+                      toast.success("Replaces copied");
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faClone}
+                      className={
+                        dark ? "dark:text-dark-text" : "text-lightblack"
+                      }
+                    />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
-            {manufacturer === 'bmw' && (<><div className="section" ref={replacesRef}>
-            <h3 className="label dark:text-dark-text">Replaces</h3>
-            <div
-              className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
-                activeReplaces ? " border-2" : ""
-              }`}
-            >
-              {" "}
-              
-              <ReactTextareaAutosize
-                className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
-                maxRows={6}
-                defaultValue={replacesVariants}
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(replacesVariants);
-                  setActiveReplaces(true);
-                  toast.success("Replaces copied");
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faClone}
-                  className={dark ? "dark:text-dark-text" : "text-lightblack"}
-                />
-              </button>
-            </div>
-          </div></>)}
-          
+          {manufacturer === "bmw" && replacesVariants?.var2?.length > 0 && (
+            <>
+              <div className="section mt-2" ref={replacesRef}>
+                <h3 className="label dark:text-dark-text">Replaces 2</h3>
+                <div
+                  className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
+                    activeReplaces ? " border-2" : ""
+                  }`}
+                >
+                  {" "}
+                  <ReactTextareaAutosize
+                    className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
+                    maxRows={6}
+                    defaultValue={replacesVariants.var2}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(replacesVariants.var2);
+                      setActiveReplaces2(true);
+                      toast.success("Replaces copied");
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faClone}
+                      className={
+                        dark ? "dark:text-dark-text" : "text-lightblack"
+                      }
+                    />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
+          {/* {manufacturer === "bmw" && (
+            <>
+              <div className="section" ref={replacesRef}>
+                <h3 className="label dark:text-dark-text">Replaces</h3>
+                <div
+                  className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
+                    activeReplaces ? " border-2" : ""
+                  }`}
+                >
+                  {" "}
+                  <ReactTextareaAutosize
+                    className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
+                    maxRows={6}
+                    defaultValue={replacesVariants}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(replacesVariants);
+                      setActiveReplaces(true);
+                      toast.success("Replaces copied");
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faClone}
+                      className={
+                        dark ? "dark:text-dark-text" : "text-lightblack"
+                      }
+                    />
+                  </button>
+                </div>
+              </div>
+            </>
+          )} */}
 
           <div className="section mt-12" ref={compRef}>
             <h3 className="label dark:text-dark-text">Compatibility</h3>

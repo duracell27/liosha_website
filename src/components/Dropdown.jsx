@@ -21,12 +21,7 @@ const Dropdown = ({ dropdownHeading, data, highlightFn, highlightArray ,manufact
   const showHighlightHeader = keysIds.every((id) =>
     highlightArray.includes(id)
   );
-  //     Object.entries(data).map(([key, value]) => [key, value])
-  //   );
-  console.log("show header", showHighlightHeader);
-  console.log("data =", data);
-  console.log("id keys =", keysIds);
-  //   console.log('convertedArray =',convertedArray)
+  
 
   return (
     <div className="my-10 text-black dark:text-dark-text">

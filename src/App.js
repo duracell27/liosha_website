@@ -17,6 +17,7 @@ function App() {
   const [pageStatus, setPageStatus] = useState("landing");
   const [data, setData] = useState("");
   const [user, setUser] = useState(null);
+  const [useSecoundParser, setUseSecoundParser] = useState(false)
 
   const [dark, setDark] = useState(false);
 
@@ -62,6 +63,7 @@ function App() {
         dark,
         setDark,
         darkModeHandler,
+        useSecoundParser, setUseSecoundParser
       }}
     >
       <BrowserRouter>
