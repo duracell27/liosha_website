@@ -91,8 +91,8 @@ const Header = () => {
   };
 
   const sendQuery = (input) => {
-    console.log('sendq', input)
-    console.log('url', `${activeSite}${input}`)
+    console.log("sendq", input);
+    console.log("url", `${activeSite}${input}`);
     axios
       // .get(`https://www.mboemparts.com/search?search_str=${input}`)
       .get(`${activeSite}${input}`)
@@ -131,20 +131,19 @@ const Header = () => {
     if (manufacturer === "bmw" && input.length === 7) {
       axios
         // .get(`https://www.mboemparts.com/search?search_str=${input}`)
-        .get(`https://bimmercat.com/bmw/en/parts/part_search?pn=${input}`)
+        .get(`https://etkbmw.cc/api/parts/${input}?lang=en`)
         .then((res) => {
           if (res.status === 200) {
-            // console.log("bimer", res.data);
-            const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(res.data, "text/html");
-            const longPartNumber = htmlDoc?.getElementsByClassName(
-              "col-7 col-md-7 pl-0"
-            )[0]?.innerText;
-            console.log("part", longPartNumber);
+            console.log("bimer", res.data.data.partId);
+            const longPartNumber = res.data.data.partId;
+            // const parser = new DOMParser();
+            // const htmlDoc = parser.parseFromString(res.data, "text/html");
+            // const longPartNumber = htmlDoc?.getElementsByClassName(
+            //   "col-7 col-md-7 pl-0"
+            // )[0]?.innerText;
+            // console.log("part", longPartNumber);
             setInput(longPartNumber);
             sendQuery(longPartNumber);
-            // setData(res.data);
-            // setPageStatus("mainInfo");
           } else {
             // setPageStatus("error");
           }
@@ -152,7 +151,7 @@ const Header = () => {
         .catch((err) => {
           setPageStatus("error");
           toast.error(
-            "не можу отримати повний partnumber з бімеркет, або cors виключений"
+            "не можу отримати повний partnumber etkbmw.cc з , або cors виключений"
           );
         });
     } else {
