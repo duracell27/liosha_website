@@ -91,8 +91,8 @@ const Header = () => {
   };
 
   const sendQuery = (input) => {
-    console.log("sendq", input);
-    console.log("url", `${activeSite}${input}`);
+    // console.log("sendq", input);
+    // console.log("url", `${activeSite}${input}`);
     axios
       // .get(`https://www.mboemparts.com/search?search_str=${input}`)
       .get(`${activeSite}${input}`)
@@ -134,16 +134,19 @@ const Header = () => {
         .get(`https://etkbmw.cc/api/parts/${input}?lang=en`)
         .then((res) => {
           if (res.status === 200) {
-            console.log("bimer", res.data.data.partId);
-            const longPartNumber = res.data.data.partId;
-            // const parser = new DOMParser();
-            // const htmlDoc = parser.parseFromString(res.data, "text/html");
-            // const longPartNumber = htmlDoc?.getElementsByClassName(
-            //   "col-7 col-md-7 pl-0"
-            // )[0]?.innerText;
-            // console.log("part", longPartNumber);
-            setInput(longPartNumber);
-            sendQuery(longPartNumber);
+            if(res.data.status === 0){
+
+              
+              const longPartNumber = res.data.data.partId;
+              
+              setInput(longPartNumber);
+              sendQuery(longPartNumber);
+            }else if (res.data.status === 1 ){
+              setPageStatus("error");
+          toast.error(
+            "не знайдено інформацію про цей партномер в etkbmw.cc"
+          );
+            }
           } else {
             // setPageStatus("error");
           }

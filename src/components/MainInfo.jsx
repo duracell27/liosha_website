@@ -108,7 +108,7 @@ const MainInfo = () => {
 
     if (!partNumber) {
       //для бмв інший парсер
-      if ((manufacturer = "bmw")) {
+      if ((manufacturer == "bmw")) {
         toast('Пробую знайти на резервному сайті хоть щось...')
         axios
           .get(
@@ -260,8 +260,6 @@ const MainInfo = () => {
     let elementsFirstPartBMW = [];
     let elementsSecondPartBMW = [];
 
-    console.warn("Too many replaces, only first 4 will be used");
-
     elementsFirstPart = elements.slice(0, 4);
     elementsSecondPart = elements.slice(4, 8);
 
@@ -314,17 +312,17 @@ const MainInfo = () => {
       return { var1: variations.join(" "), var2: variations2.join(" ") };
     } else if (manufacturer === "bmw") {
       elementsFirstPartBMW.forEach((element) => {
-        // let strippedElement = element.replace(/-/g, ""); // варіація 1
+        let strippedElement = element.replace(/-/g, ""); // варіація 1
         // let spacedElement = element.replace(/-/g, " "); // варіація 2
 
-        let shortStrippedElement = element.replace(/-/g, "").slice(-7); // варіація 4
+        // let shortStrippedElement = element.replace(/-/g, "").slice(-7); // варіація 4
         // let shortSpacedElement = element.replace(/-/g, " ").slice(-9); // варіація 5
 
-        // variations.push(strippedElement); // варіація 1
+        variations.push(strippedElement); // варіація 1
         // variations.push(spacedElement); // варіація 2
         // variations.push(element); // варіація 3
 
-        variations.push(shortStrippedElement); // варіація 4
+        // variations.push(shortStrippedElement); // варіація 4
         // variations.push(shortSpacedElement); // варіація 5
       });
       elementsSecondPartBMW.forEach((element) => {
