@@ -62,7 +62,8 @@ const Dropdown = ({ dropdownHeading, data, highlightFn, highlightArray ,manufact
                     : "dark:bg-dark-input-bg bg-input-bg"
                 } cursor-pointer flex   h-[38px] border-b border-dark-border items-center text-[13px]`}
               >
-                <span className="w-[250px] pl-[52px]">{keyName}</span>
+                {manufacturer === 'mini' ? (<span className="w-[250px] pl-[52px]">{keyName.slice(0,4)}</span>):(<span className="w-[250px] pl-[52px]">{keyName}</span>)}
+                
                 <span>{obj[keyName]}</span>
               </li>
             ));

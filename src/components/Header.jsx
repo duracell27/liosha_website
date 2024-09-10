@@ -2,15 +2,12 @@ import React, { useContext, useEffect, useState } from "react";
 import { CarModel } from "../App";
 import bmw from "../img/bmw.svg";
 import mercedes from "../img/mercedes.svg";
-import moon from "../img/moon.svg";
-import sun from "../img/sun.svg";
-import cross from "../img/cross.svg";
+import mini from "../img/mini.png";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { logoutUser, storeInSession } from "../utils/session";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCross,
   faMoon,
   faSun,
   faXmark,
@@ -22,9 +19,7 @@ const Header = () => {
     setManufacturer,
     input,
     setInput,
-    pageStatus,
     setPageStatus,
-    data,
     setData,
     user,
     setUser,
@@ -44,6 +39,8 @@ const Header = () => {
   ];
   const bmwSites = ["bmwpartsnow.com"];
 
+  const miniSites = ["shopoemminiparts.com"];
+
   const mercedesSitesLinks = [
     "https://www.mboemparts.com/search?search_str=",
     "https://www.mercedesbenzpartsshop.com/search?search_str=",
@@ -54,6 +51,8 @@ const Header = () => {
     "https://www.mbonlineparts.com/search?search_str=",
   ];
   const bmwSitesLinks = ["https://www.bmwpartsnow.com/search?search_str="];
+
+  const miniSitesLinks = ["https://www.shopoemminiparts.com/search?search_str="];
   //"https://parts.bmwofstratham.com/productSearch.aspx?searchTerm="
 
   const [activeSite, setActiveSite] = useState(mercedesSitesLinks[0]);
@@ -91,8 +90,6 @@ const Header = () => {
   };
 
   const sendQuery = (input) => {
-    // console.log("sendq", input);
-    // console.log("url", `${activeSite}${input}`);
     axios
       // .get(`https://www.mboemparts.com/search?search_str=${input}`)
       .get(`${activeSite}${input}`)
@@ -162,6 +159,8 @@ const Header = () => {
     }
   };
 
+  console.log('activesite', activeSite)
+
   const handleSelect = (e) => {
     setManufacturer(e.target.value);
     setActiveSite(() => {
@@ -169,6 +168,8 @@ const Header = () => {
         return bmwSitesLinks[0];
       } else if (e.target.value === "mercedes") {
         return mercedesSitesLinks[0];
+      }else if (e.target.value === "mini") {
+        return miniSitesLinks[0];
       }
     });
     setInput("");
@@ -270,42 +271,7 @@ const Header = () => {
           </div>
         </div>
         <div className="mb-3">
-          {/* <div className="flex justify-between items-center">
-            <div className="flex items-center gap-5 text-white">
-              <label className="labelRadio flex items-center">
-                <input
-                onChange={handleSelect}
-                  className="labelRadioInput"
-                  type="radio"
-                  name="manufacturer"
-                  value="mercedes"
-                />
-                <span className="checkmark"></span>
-                mercedes
-              </label>
-              <label className="labelRadio flex items-center">
-                <input
-                onChange={handleSelect}
-                  className="labelRadioInput"
-                  type="radio"
-                  name="manufacturer"
-                  value="bmw"
-                />
-                <span className="checkmark"></span>
-                bmw
-              </label>
-            </div>
-            <div className="">
-              <span className="text-white text-[21px]">
-                Enter part link from one of
-              </span>
-              <select className="bg-transparent text-white text-[21px] outline-none underline">
-                <option value="select">these websites</option>
-                <option value="site1">siteone</option>
-                <option value="site2">sitetwo</option>
-              </select>
-            </div>
-          </div> */}
+        
         </div>
         <div className="flex gap-3 h-13 items-end">
           <div className="flex-1">
@@ -339,6 +305,20 @@ const Header = () => {
                   ></span>
                   bmw
                 </label>
+                <label className="labelRadio flex items-center">
+                  <input
+                    onChange={handleSelect}
+                    className="labelRadioInput"
+                    type="radio"
+                    name="manufacturer"
+                    value="mini"
+                    checked={manufacturer === "mini"}
+                  />
+                  <span
+                    className={`checkmark ${dark && "checkmark-dark"}`}
+                  ></span>
+                  mini
+                </label>
               </div>
               <div className="">
                 <span className="text-white text-[21px]">
@@ -350,13 +330,18 @@ const Header = () => {
                   value={activeSite}
                 >
                   {manufacturer === "mercedes"
-                    ? mercedesSites.map((site, i) => (
+                    && mercedesSites.map((site, i) => (
                         <option key={i} value={mercedesSitesLinks[i]}>
                           {site}
                         </option>
-                      ))
-                    : bmwSites.map((site, i) => (
+                      ))}
+                    {manufacturer === "bmw" && bmwSites.map((site, i) => (
                         <option key={i} value={bmwSitesLinks[i]}>
+                          {site}
+                        </option>
+                      ))}
+                      {manufacturer === "mini" && miniSites.map((site, i) => (
+                        <option key={i} value={miniSitesLinks[i]}>
                           {site}
                         </option>
                       ))}
@@ -367,7 +352,7 @@ const Header = () => {
               <div className="bg-yellow rounded-l-lg overflow-hidden min-w-[50px] flex justify-center items-center gap-1">
                 <img
                   className="w-[20px] h-[20px]"
-                  src={manufacturer == "bmw" ? bmw : mercedes}
+                  src={manufacturer === "bmw" ? bmw : manufacturer === "mercedes" ? mercedes: mini}
                   alt="logo"
                 />
               </div>
@@ -379,7 +364,7 @@ const Header = () => {
                   onKeyUp={handleSearchByEnter}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={
-                    manufacturer == "bmw"
+                    manufacturer === "bmw"
                       ? "Enter BMW part number"
                       : "Enter Mercedes part number"
                   }

@@ -100,23 +100,24 @@ const MainInfo = () => {
     partNumber = htmlDoc?.getElementsByClassName("list-value sku-display")[0]
       ?.innerText;
 
-    if(useSecoundParser){
-      partNumber = htmlDoc?.getElementsByClassName("body-3 stock-code-text")[0]?.children[0]?.innerText
-      
+    if (useSecoundParser) {
+      partNumber = htmlDoc?.getElementsByClassName("body-3 stock-code-text")[0]
+        ?.children[0]?.innerText;
+
       // ?.innerText;
     }
 
     if (!partNumber) {
       //для бмв інший парсер
-      if ((manufacturer == "bmw")) {
-        toast('Пробую знайти на резервному сайті хоть щось...')
+      if (manufacturer == "bmw") {
+        toast("Пробую знайти на резервному сайті хоть щось...");
         axios
           .get(
             `https://parts.bmwofstratham.com/productSearch.aspx?searchTerm=${input}`
           )
           .then((res) => {
             if (res.status === 200) {
-              setUseSecoundParser(true)
+              setUseSecoundParser(true);
               setData(res.data);
               setPageStatus("mainInfo");
             } else {
@@ -136,9 +137,10 @@ const MainInfo = () => {
     replaces = htmlDoc?.getElementsByClassName("product-superseded-list")[0]
       ?.childNodes[3]?.innerText;
 
-    if(useSecoundParser){
-      replaces = htmlDoc?.getElementsByClassName("body-3 alt-stock-code-text")[0]
-       ?.childNodes[0]?.innerText
+    if (useSecoundParser) {
+      replaces = htmlDoc?.getElementsByClassName(
+        "body-3 alt-stock-code-text"
+      )[0]?.childNodes[0]?.innerText;
     }
     position =
       htmlDoc?.getElementsByClassName("positions")[0]?.childNodes[3]?.innerText;
@@ -168,6 +170,8 @@ const MainInfo = () => {
         }
       }
 
+      console.log("mas", mas);
+
       mas.filter((row) => {
         if (!unicFromMas.includes(row[2])) {
           unicFromMas.push(row[2]);
@@ -175,24 +179,43 @@ const MainInfo = () => {
       });
 
       mas.sort(); // від цього залежить функція sortYears
-      unicFromMas.map((unicModel) => {
-        let yearsArr = [];
-        mas.forEach((row) => {
-          if (unicModel === row[2]) {
-            yearsArr.push(Number(row[0].trim()));
-          }
+
+      console.log("mas sort", mas);
+
+      if (manufacturer === "mini") {
+        let count = 1; // Лічильник для унікальних ключів
+        mas.forEach((item) => {
+          const year = item[0].trim();
+          const models = item[3].split(",").map((model) => model.trim());
+
+          models.forEach((model) => {
+            // Створюємо унікальний ключ на основі року і лічильника
+            compabilityObj[`${year}_${count}`] = model;
+            count++;
+          });
         });
-        compabilityObj[unicModel] = sortYears(yearsArr);
-      });
+      } else {
+        unicFromMas.map((unicModel) => {
+          let yearsArr = [];
+          mas.forEach((row) => {
+            if (unicModel === row[2]) {
+              yearsArr.push(Number(row[0].trim()));
+            }
+          });
+          compabilityObj[unicModel] = sortYears(yearsArr);
+        });
 
-      compabilityObj = Object.keys(compabilityObj)
-        .sort()
-        .reduce((accumulator, key) => {
-          accumulator[key] = compabilityObj[key];
+        compabilityObj = Object.keys(compabilityObj)
+          .sort()
+          .reduce((accumulator, key) => {
+            accumulator[key] = compabilityObj[key];
 
-          return accumulator;
-        }, {});
+            return accumulator;
+          }, {});
+      }
     }
+
+    console.log("compatibility", compabilityObj);
 
     // if (replaces?.length > 0) {
     replacesVariants = generateVariationsForReplaces(replaces, partNumber);
@@ -242,11 +265,12 @@ const MainInfo = () => {
   function generateVariationsForReplaces(inputString, mainPartNumber, queue) {
     let elements = [];
     if (inputString?.length > 0) {
-      if(useSecoundParser){
+      if (useSecoundParser) {
         elements.push(...inputString?.split("; "));
-      }else{
+      } else {
         elements.push(...inputString?.split(", "));
       }
+
       elements.unshift(mainPartNumber); // додаємо основний номер заміни в начало масиву
     } else {
       elements.push(mainPartNumber);
@@ -254,11 +278,12 @@ const MainInfo = () => {
 
     elements = removeDuplicates(elements);
 
-   
     let elementsFirstPart = [];
     let elementsSecondPart = [];
     let elementsFirstPartBMW = [];
     let elementsSecondPartBMW = [];
+    let elementsFirstPartMINI = [];
+    let elementsSecondPartMINI = [];
 
     elementsFirstPart = elements.slice(0, 4);
     elementsSecondPart = elements.slice(4, 8);
@@ -280,6 +305,9 @@ const MainInfo = () => {
 
     elementsFirstPartBMW = elements.slice(0, 7);
     elementsSecondPartBMW = elements.slice(7, 14);
+
+    elementsFirstPartMINI = elements.slice(0, 5);
+    elementsSecondPartMINI = elements.slice(5, 10);
 
     let variations = [];
     let variations2 = [];
@@ -340,6 +368,36 @@ const MainInfo = () => {
         // variations.push(shortSpacedElement); // варіація 5
       });
       return { var1: variations.join(" "), var2: variations2.join(" ") };
+    } else if (manufacturer === "mini") {
+      elementsFirstPartMINI.forEach((element) => {
+        let strippedElement = element.replace(/-/g, ""); // варіація 1
+        // let spacedElement = element.replace(/-/g, " "); // варіація 2
+
+        // let shortStrippedElement = element.replace(/-/g, "").slice(-7); // варіація 4
+        // let shortSpacedElement = element.replace(/-/g, " ").slice(-9); // варіація 5
+
+        variations.push(strippedElement); // варіація 1
+        // variations.push(spacedElement); // варіація 2
+        // variations.push(element); // варіація 3
+
+        // variations.push(shortStrippedElement); // варіація 4
+        // variations.push(shortSpacedElement); // варіація 5
+      });
+      elementsSecondPartMINI.forEach((element) => {
+        let strippedElement = element.replace(/-/g, ""); // варіація 1
+        // let spacedElement = element.replace(/-/g, " "); // варіація 2
+
+        //let shortStrippedElement = element.replace(/-/g, "").slice(-7); // варіація 4
+        // let shortSpacedElement = element.replace(/-/g, " ").slice(-9); // варіація 5
+
+        variations2.push(strippedElement); // варіація 1
+        // variations.push(spacedElement); // варіація 2
+        // variations.push(element); // варіація 3
+
+        //variations2.push(shortStrippedElement); // варіація 4
+        // variations.push(shortSpacedElement); // варіація 5
+      });
+      return { var1: variations.join(" "), var2: variations2.join(" ") };
     }
   }
 
@@ -378,6 +436,8 @@ const MainInfo = () => {
       series = model.split(" ")[0];
     } else if (manufacturer === "bmw") {
       series = model[0];
+    } else if (manufacturer === "mini") {
+      series = model.split("_")[0];
     }
 
     // If the series doesn't exist in the grouped object, create an empty array for it
@@ -388,8 +448,6 @@ const MainInfo = () => {
     // Push the model and its production year range into the corresponding series array
     groupedBySeries[series].push({ [model]: compabilityObj[model] });
   }
-
-  
 
   return partNumber ? (
     <div className="py-[50px] px-6 dark:bg-dark-bg">
@@ -584,10 +642,16 @@ const MainInfo = () => {
             </>
           )}
 
-          {/* {manufacturer === "bmw" && (
+          {/* //////////////////////////////////////////////////////////////// */}
+          {manufacturer === "mini" && replacesVariants?.var1?.length > 0 && (
             <>
               <div className="section" ref={replacesRef}>
-                <h3 className="label dark:text-dark-text">Replaces</h3>
+                <h3 className="label dark:text-dark-text">
+                  Replaces{" "}
+                  <span className="text-sm">
+                    ({replacesVariants?.var1?.length} sym)
+                  </span>
+                </h3>
                 <div
                   className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
                     activeReplaces ? " border-2" : ""
@@ -597,11 +661,11 @@ const MainInfo = () => {
                   <ReactTextareaAutosize
                     className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
                     maxRows={6}
-                    defaultValue={replacesVariants}
+                    defaultValue={replacesVariants.var1}
                   />
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(replacesVariants);
+                      navigator.clipboard.writeText(replacesVariants.var1);
                       setActiveReplaces(true);
                       toast.success("Replaces copied");
                     }}
@@ -616,9 +680,49 @@ const MainInfo = () => {
                 </div>
               </div>
             </>
-          )} */}
+          )}
 
-          <div className="section mt-12" ref={compRef}>
+          {manufacturer === "mini" && replacesVariants?.var2?.length > 0 && (
+            <>
+              <div className="section mt-2" ref={replacesRef}>
+                <h3 className="label dark:text-dark-text">
+                  Replaces 2{" "}
+                  <span className="text-sm">
+                    ({replacesVariants?.var2?.length} sym)
+                  </span>
+                </h3>
+                <div
+                  className={`p-4 shadow-[0_0px_13px_-3px_rgba(0,0,0,0.5)] rounded-lg mt-2 flex gap-[15px] items-start ${
+                    activeReplaces ? " border-2" : ""
+                  }`}
+                >
+                  {" "}
+                  <ReactTextareaAutosize
+                    className="w-[96%] outline-none resize-none dark:bg-dark-bg dark:text-dark-text"
+                    maxRows={6}
+                    defaultValue={replacesVariants.var2}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(replacesVariants.var2);
+                      setActiveReplaces2(true);
+                      toast.success("Replaces copied");
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faClone}
+                      className={
+                        dark ? "dark:text-dark-text" : "text-lightblack"
+                      }
+                    />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          {/* //////////////////////////////////////////////////////////////// */}
+
+          {/* <div className="section mt-12" ref={compRef}>
             <h3 className="label dark:text-dark-text">Compatibility</h3>
             <ul>
               <li className="flex gap-6 h-[38px] items-center rounded-md font-bold text-[13px]">
@@ -650,7 +754,7 @@ const MainInfo = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           <div className="section mt-12">
             <h3 className="label dark:text-dark-text">
