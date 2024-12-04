@@ -172,29 +172,57 @@ const MainInfo = () => {
 
       console.log("mas", mas);
 
-      mas.filter((row) => {
-        if (!unicFromMas.includes(row[2])) {
-          unicFromMas.push(row[2]);
-        }
-      });
-
-      mas.sort(); // від цього залежить функція sortYears
-
-      console.log("mas sort", mas);
-
       if (manufacturer === "mini") {
-        let count = 1; // Лічильник для унікальних ключів
-        mas.forEach((item) => {
-          const year = item[0].trim();
-          const models = item[3].split(",").map((model) => model.trim());
+// 1. Спочатку фільтруємо та зберігаємо унікальні моделі
+mas.forEach((row) => {
+  const models = row[3].split(',').map(model => model.trim()); // ділимо за комою і обрізаємо пробіли
+  models.forEach((model) => {
+      if (!unicFromMas.includes(model)) {
+          unicFromMas.push(model);
+      }
+  });
+});
 
-          models.forEach((model) => {
-            // Створюємо унікальний ключ на основі року і лічильника
-            compabilityObj[`${year}_${count}`] = model;
-            count++;
-          });
+// 2. Сортуємо за моделями
+unicFromMas.sort();
+
+// 3. Для кожної унікальної моделі збираємо роки
+unicFromMas.forEach((unicModel) => {
+  let yearsArr = [];
+  
+  mas.forEach((row) => {
+      const models = row[3].split(',').map(model => model.trim()); // ділимо на моделі
+      if (models.includes(unicModel)) { // перевіряємо, чи є поточна модель в списку
+          yearsArr.push(Number(row[0].trim())); // додаємо рік
+      }
+  });
+  
+  // Сортуємо роки
+  yearsArr.sort((a, b) => a - b);
+
+  // Формуємо діапазон років, наприклад, "2012-2015"
+  if (yearsArr.length > 1) {
+      compabilityObj[unicModel] = `${yearsArr[0]}-${yearsArr[yearsArr.length - 1]}`;
+  } else {
+      compabilityObj[unicModel] = `${yearsArr[0]}`;
+  }
+});
+
+// 4. Сортуємо об'єкт за моделями
+compabilityObj = Object.keys(compabilityObj)
+  .sort()
+  .reduce((accumulator, key) => {
+      accumulator[key] = compabilityObj[key];
+      return accumulator;
+  }, {});
+      }else{
+        mas.filter((row) => {
+          if (!unicFromMas.includes(row[2])) {
+            unicFromMas.push(row[2]);
+          }
         });
-      } else {
+  
+        mas.sort();
         unicFromMas.map((unicModel) => {
           let yearsArr = [];
           mas.forEach((row) => {
@@ -213,6 +241,26 @@ const MainInfo = () => {
             return accumulator;
           }, {});
       }
+
+       // від цього залежить функція sortYears
+
+      //console.log("mas sort", mas);
+      // для міні інше компатібіліті масив, але льоша просив повернути все наза
+      // if (manufacturer === "mini") {
+      //   let count = 1; // Лічильник для унікальних ключів
+      //   mas.forEach((item) => {
+      //     const year = item[0].trim();
+      //     const models = item[3].split(",").map((model) => model.trim());
+
+      //     models.forEach((model) => {
+      //       // Створюємо унікальний ключ на основі року і лічильника
+      //       compabilityObj[`${year}_${count}`] = model;
+      //       count++;
+      //     });
+      //   });
+      // } else {
+        
+      //}
     }
 
     console.log("compatibility", compabilityObj);
@@ -722,7 +770,7 @@ const MainInfo = () => {
           )}
           {/* //////////////////////////////////////////////////////////////// */}
 
-          {/* <div className="section mt-12" ref={compRef}>
+          <div className="section mt-12" ref={compRef}>
             <h3 className="label dark:text-dark-text">Compatibility</h3>
             <ul>
               <li className="flex gap-6 h-[38px] items-center rounded-md font-bold text-[13px]">
@@ -754,9 +802,9 @@ const MainInfo = () => {
                 </li>
               ))}
             </ul>
-          </div> */}
+          </div>
 
-          <div className="section mt-12">
+          {/* <div className="section mt-12">
             <h3 className="label dark:text-dark-text">
               Compatibility NEW (beta)
             </h3>
@@ -770,7 +818,7 @@ const MainInfo = () => {
                 manufacturer={manufacturer}
               />
             ))}
-          </div>
+          </div> */}
 
           <div className="section mt-12 relative" ref={descRef}>
             <h3 className="label dark:text-dark-text">Description</h3>
